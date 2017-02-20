@@ -18,7 +18,7 @@ type Options struct {
 var g_Options Options;
 
 var fen = "8/8/8/4k3/5R2/8/8/3QK3 w - - 0 1";
-var ICON_SIZE = 32;
+var ICON_SIZE = 60;
 
 func (options *Options) ParseCommandLineOptions() {
     flag.StringVar(&options.OutputFilename, "output", "out.png", "The output filename")
@@ -83,11 +83,11 @@ func main() {
     img.Set(2, 3, color.RGBA{255, 0, 0, 255})
 
     f, _ := os.OpenFile("out.png", os.O_WRONLY|os.O_CREATE, 0600)
-    bishopIcon := loadIcon("icons/bbws.png")
+    bishopIcon := loadIcon("icons/b60.png")
     defer f.Close()
 
     DrawBoard(img);
-    draw.Draw(img, img.Bounds(), bishopIcon, image.Point{0,0}, draw.Src);
+    draw.Draw(img, img.Bounds(), bishopIcon, image.Point{0,0}, draw.Over);
 
     //Rect(32,100,100,130, color.RGBA{0, 128, 255, 255}, img);
 

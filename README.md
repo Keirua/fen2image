@@ -1,3 +1,7 @@
+# Source of the icons :
+
+https://commons.wikimedia.org/wiki/Category:PNG_chess_pieces/Standard_transparent
+
 Purpose: 
 
 API endpoint : 
