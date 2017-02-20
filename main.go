@@ -52,6 +52,30 @@ func parseFen(fen string){
 // 8ca2ad
 // dee3e6
 
+func Rect(x1 int, y1, x2, y2 int, col color.RGBA, img *image.RGBA) {
+    for x := x1; x<= x2; x++ {
+        for y := y1; y <= y2; y++ {
+            img.Set(x, y, col)
+        }
+    }
+}
+
+func DrawBoard(img *image.RGBA){
+    var whiteColor = color.RGBA{0, 128, 192, 255};
+    var blackColor = color.RGBA{96, 96, 96, 255};
+
+    for x := 0; x<= 8; x++ {
+        for y := 0; y <= 8; y++ {
+            color := blackColor;
+            if (x+y)%2 == 0 {
+                color = whiteColor;
+            }
+
+            Rect(x*ICON_SIZE, y*ICON_SIZE, (x+1)*ICON_SIZE, (y+1)*ICON_SIZE, color, img)
+        }
+    }
+}
+
 func main() {
     g_Options.ParseCommandLineOptions();
 
@@ -62,7 +86,10 @@ func main() {
     bishopIcon := loadIcon("icons/bbws.png")
     defer f.Close()
 
+    DrawBoard(img);
     draw.Draw(img, img.Bounds(), bishopIcon, image.Point{0,0}, draw.Src);
+
+    //Rect(32,100,100,130, color.RGBA{0, 128, 255, 255}, img);
 
     png.Encode(f, img)
 
