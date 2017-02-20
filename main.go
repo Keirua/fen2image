@@ -80,9 +80,9 @@ func Rect(x1 int, y1, x2, y2 int, col color.RGBA, img *image.RGBA) {
 }
 
 func DrawBackground(img *image.RGBA){
-    // Lichess uses 8ca2ad and dee3e6
-    var whiteColor = color.RGBA{0, 128, 192, 255};
-    var blackColor = color.RGBA{96, 96, 96, 255};
+    // Lichess colors : 8ca2ad and dee3e6
+    var whiteColor = color.RGBA{222, 227, 230, 255};
+    var blackColor = color.RGBA{140,162, 173, 255};
 
     var s = g_Options.CellSize;
 
