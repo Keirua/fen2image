@@ -9,6 +9,8 @@ import (
     "image/draw"
     "os"
     "regexp"
+    "strings"
+    "errors"
 )
 
 var DEFAULT_ICON_SIZE = 60;
@@ -23,7 +25,7 @@ var g_Options Options;
 
 var fen = "8/8/8/4k3/5R2/8/8/3QK3 w - - 0 1";
 
-var board = [8][8]byte{  
+var defaultBoard = [8][8]byte{  
  {'r','n','b','q','k','b','n','r'},
  {'p','p','p','p','p','p','p','p'},
  {' ',' ',' ',' ',' ',' ',' ',' '},
@@ -120,27 +122,72 @@ func loadIcons(){
     }
 }
 
+func isValidFen(fen string) bool{
+    var linePattern = "[1-9rnbqkpRNBQKP]+";
+    var fenRegex = fmt.Sprintf("%s/%s/%s/%s/%s/%s/%s/%s w|b - - \\d+ \\d+", linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern)
+    var isValid, _ = regexp.MatchString(fenRegex, fen)
+    return isValid
+}
+
+func getBoardLine(fenElement string) ([8]byte, error) {
+    var line = [8]byte{};
+    var pos = 0;
+    for _, cellValue := range fenElement {
+        if pos >= 8 {
+            return line, errors.New(fmt.Sprintf("Oops: %s is not a valid fen element", fenElement))
+            break;
+        }
+        if contains(validPieces, byte(cellValue)){
+            line[pos] = byte(cellValue)
+            pos = pos + 1
+            continue;
+        }  else {
+            pos = pos + int((int(cellValue) - int('0')))
+        }
+    }
+
+    return line, nil;
+}
+
+func getBoardFromFen(fen string) ([8][8]byte, error) {
+    if false == isValidFen(fen) {
+        return defaultBoard, errors.New("Invalid FEN !");
+    }
+    var splits = strings.Split(fen, " ")
+    var lines = strings.Split(splits[0], "/")
+
+    var board = [8][8]byte{};
+    for y := 0; y < 8; y++ {
+        var err error
+        board[y], err = getBoardLine(lines[y])
+        if err != nil {
+            return defaultBoard, err
+        }
+    }
+
+    return board, nil;
+}
+
 func main() {
+    var fen = "4k3/r6Bp/8p/8/8/8/8/K6Q w - - 0 0"
+
     g_Options.ParseCommandLineOptions();
     loadIcons();
 
     img := image.NewRGBA(image.Rect(0, 0, 8*g_Options.CellSize, 8*g_Options.CellSize))
-    img.Set(2, 3, color.RGBA{255, 0, 0, 255})
 
-    f, _ := os.OpenFile("out.png", os.O_WRONLY|os.O_CREATE, 0600)
-    
+    f, _ := os.OpenFile(g_Options.OutputFilename, os.O_WRONLY|os.O_CREATE, 0600)
     defer f.Close()
 
+    var board, err = getBoardFromFen(fen);
     DrawBackground(img);
     DrawBoard(board, img)
 
+    if err != nil {
+        fmt.Println(err)
+        fmt.Println("Output will be a default board")
+        os.Exit(65) // DATAERR according to /usr/include/sysexits.h
+    }
+
     png.Encode(f, img)
-
-    var fen = "4k3/8/8/8/8/8/8/8 w - - 0 0"
-    var linePattern = "[1-9rnbqkpRNBQKP]+";
-    var fenRegex = fmt.Sprintf("%s/%s/%s/%s/%s/%s/%s/%s w|b - - \\d+ \\d+", linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern)
-    var isValid, _ = regexp.MatchString(fenRegex, fen)
-
-    fmt.Println(isValid)
-    fmt.Println("Success !")
 }
