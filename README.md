@@ -1,23 +1,26 @@
-# Source of the icons :
+# fen2image
 
-https://commons.wikimedia.org/wiki/Category:PNG_chess_pieces/Standard_transparent
+cli tool that generates chess board png images from [FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) description :
 
-Purpose: 
+    rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 
-API endpoint : 
+The icons come from [WikiMedia](https://commons.wikimedia.org/wiki/Category:PNG_chess_pieces/Standard_transparent)
 
-https://en.lichess.org/study/{study_id}/{chapter_id}
-Example :
+## Usage
 
-GET /study/EMudCdxu/BXpApkse?_=1487534399267 HTTP/1.1
-Host: en.lichess.org
-User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0
-Accept: application/json, text/*, application/vnd.lichess.v1+json
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate, br
-X-Requested-With: XMLHttpRequest
-Referer: https://en.lichess.org/study/EMudCdxu
-Connection: keep-alive
+Will be detailled once the core functionnality is developped
 
-Also requires Cookie
+## Todo
 
+board
+ -> write tests
+ -> convert board fromFEN
+ -> validate FEN input expression with regex
+options
+ -> handle different cell size (-> resize icons)
+ -> output filename
+ -> cell colors
+renderer
+ -> PNG Renderer
+ -> SVG Renderer ?
+ -> resize, invert board (view from blacks), draw row/column names

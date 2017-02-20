@@ -13,6 +13,7 @@ import (
 type Options struct {
     Fen     string
     OutputFilename     string
+    CellSize int
 }
 
 var g_Options Options;
@@ -37,6 +38,7 @@ var icons map[byte] *image.Image = make(map[byte] *image.Image);
 
 func (options *Options) ParseCommandLineOptions() {
     flag.StringVar(&options.OutputFilename, "output", "out.png", "The output filename")
+    flag.StringVar(&options.Fen, "fen", "8/8/8/8/8/8/8/8 w - - 0 0", "The fen expression")
     flag.StringVar(&options.Fen, "fen", "8/8/8/8/8/8/8/8 w - - 0 0", "The fen expression")
 
     flag.Parse();
