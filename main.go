@@ -8,7 +8,10 @@ import (
     "image/png"
     "image/draw"
     "os"
+    "regexp"
 )
+
+var DEFAULT_ICON_SIZE = 60;
 
 type Options struct {
     Fen     string
@@ -19,7 +22,6 @@ type Options struct {
 var g_Options Options;
 
 var fen = "8/8/8/4k3/5R2/8/8/3QK3 w - - 0 1";
-var ICON_SIZE = 60;
 
 var board = [8][8]byte{  
  {'r','n','b','q','k','b','n','r'},
@@ -32,14 +34,12 @@ var board = [8][8]byte{
  {'R','N','B','Q','K','B','N','R'}};
 
 var validPieces = []byte{'r','n','b','q','k','p', 'R','N','B','Q','K','P'};
-
-// bishopIcon := loadIcon("icons/b60.png")
 var icons map[byte] *image.Image = make(map[byte] *image.Image);
 
 func (options *Options) ParseCommandLineOptions() {
     flag.StringVar(&options.OutputFilename, "output", "out.png", "The output filename")
     flag.StringVar(&options.Fen, "fen", "8/8/8/8/8/8/8/8 w - - 0 0", "The fen expression")
-    flag.StringVar(&options.Fen, "fen", "8/8/8/8/8/8/8/8 w - - 0 0", "The fen expression")
+    flag.IntVar(&options.CellSize, "cellsize", DEFAULT_ICON_SIZE, "The board cell size")
 
     flag.Parse();
 }
@@ -62,10 +62,6 @@ func loadIcon(inputFilename string) *image.Image {
     return &src;
 }
 
-func parseFen(fen string){
-
-}
-
 func contains(s []byte, e byte) bool {
     for _, a := range s {
         if a == e {
@@ -74,9 +70,6 @@ func contains(s []byte, e byte) bool {
     }
     return false
 }
-
-// 8ca2ad
-// dee3e6
 
 func Rect(x1 int, y1, x2, y2 int, col color.RGBA, img *image.RGBA) {
     for x := x1; x<= x2; x++ {
@@ -87,8 +80,11 @@ func Rect(x1 int, y1, x2, y2 int, col color.RGBA, img *image.RGBA) {
 }
 
 func DrawBackground(img *image.RGBA){
+    // Lichess uses 8ca2ad and dee3e6
     var whiteColor = color.RGBA{0, 128, 192, 255};
     var blackColor = color.RGBA{96, 96, 96, 255};
+
+    var s = g_Options.CellSize;
 
     for x := 0; x< 8; x++ {
         for y := 0; y < 8; y++ {
@@ -97,7 +93,7 @@ func DrawBackground(img *image.RGBA){
                 color = whiteColor;
             }
 
-            Rect(x*ICON_SIZE, y*ICON_SIZE, (x+1)*ICON_SIZE, (y+1)*ICON_SIZE, color, img)
+            Rect(x*s, y*s, (x+1)*s, (y+1)*s, color, img)
         }
     }
 }
@@ -106,17 +102,15 @@ func DrawBoard(board [8][8]byte, img *image.RGBA){
     for x := 0; x< 8; x++ {
         for y := 0; y < 8; y++ {
             var piece = board[y][x];
-            fmt.Println(piece);
             
             var isValidPiece = piece != ' ' && contains(validPieces, piece);
             var _, isLoaded = icons[piece];
             if isValidPiece && isLoaded {
-                fmt.Println("Drawing " + string(piece));
-                draw.Draw(img, img.Bounds(), *(icons[piece]), image.Point{-x*ICON_SIZE,-y*ICON_SIZE}, draw.Over);
+                var coords = image.Point{-x*g_Options.CellSize,-y*g_Options.CellSize}
+                draw.Draw(img, img.Bounds(), *(icons[piece]), coords, draw.Over);
             }
         }
     }
-    // draw.Draw(img, img.Bounds(), *(icons['R']), image.Point{6*ICON_SIZE,6*ICON_SIZE}, draw.Over);
 }
 
 func loadIcons(){
@@ -130,7 +124,7 @@ func main() {
     g_Options.ParseCommandLineOptions();
     loadIcons();
 
-    img := image.NewRGBA(image.Rect(0, 0, 8*ICON_SIZE, 8*ICON_SIZE))
+    img := image.NewRGBA(image.Rect(0, 0, 8*g_Options.CellSize, 8*g_Options.CellSize))
     img.Set(2, 3, color.RGBA{255, 0, 0, 255})
 
     f, _ := os.OpenFile("out.png", os.O_WRONLY|os.O_CREATE, 0600)
@@ -140,8 +134,13 @@ func main() {
     DrawBackground(img);
     DrawBoard(board, img)
 
-    // draw.Draw(img, img.Bounds(), *bishopIcon, image.Point{-60,-60}, draw.Over);
     png.Encode(f, img)
 
+    var fen = "4k3/8/8/8/8/8/8/8 w - - 0 0"
+    var linePattern = "[1-9rnbqkpRNBQKP]+";
+    var fenRegex = fmt.Sprintf("%s/%s/%s/%s/%s/%s/%s/%s w|b - - \\d+ \\d+", linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern)
+    var isValid, _ = regexp.MatchString(fenRegex, fen)
+
+    fmt.Println(isValid)
     fmt.Println("Success !")
 }
