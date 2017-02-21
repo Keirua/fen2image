@@ -56,7 +56,7 @@ func (r RasterBoardRenderer) rect(x1 int, y1, x2, y2 int, col color.RGBA, img *i
 	}
 }
 
-func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int) *image.RGBA {
+func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int, reverseBoard bool) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, 8*cellsize, 8*cellsize))
 
 	// Lichess colors : 8ca2ad and dee3e6
@@ -76,6 +76,9 @@ func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int) *image.R
 
 			// drawPiece
 			var piece = board[y][x]
+			if reverseBoard {
+				piece = board[7-y][7-x]
+			}
 
 			var _, isLoaded = r.icons[piece]
 			if isChessPieceOrPawn(piece) && isLoaded {
@@ -88,12 +91,11 @@ func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int) *image.R
 	return img
 }
 
-func (r RasterBoardRenderer) DrawCompleteBoard(board [8][8]byte, filename string, cellsize int) {
-	img := r.drawPieces(board, cellsize)
+func (r RasterBoardRenderer) DrawCompleteBoard(board [8][8]byte, filename string, cellsize int, reverse bool) {
+	img := r.drawPieces(board, cellsize, reverse)
 
 	f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
 	defer f.Close()
-
 
 	png.Encode(f, img)
 }
