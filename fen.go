@@ -7,6 +7,16 @@ import (
 	"strings"
 )
 
+var defaultBoard = [8][8]byte{
+	{'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+	{'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+	{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+	{'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}}
+
 func contains(s []byte, e byte) bool {
 	for _, a := range s {
 		if a == e {
@@ -18,7 +28,7 @@ func contains(s []byte, e byte) bool {
 
 func isValidFen(fen string) bool {
 	var linePattern = "[1-9rnbqkpRNBQKP]+"
-	var fenRegex = fmt.Sprintf("%s/%s/%s/%s/%s/%s/%s/%s w|b - - \\d+ \\d+", linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern)
+	var fenRegex = fmt.Sprintf("%s/%s/%s/%s/%s/%s/%s/%s w|b (K?Q?k?q?)|- ([a-h][1-8])|- \\d+ \\d+", linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern)
 	var isValid, _ = regexp.MatchString(fenRegex, fen)
 	return isValid
 }

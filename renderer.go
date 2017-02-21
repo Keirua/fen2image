@@ -8,7 +8,29 @@ import (
 	"os"
 )
 
-func loadIcon(inputFilename string) *image.Image {
+type BoardRenderer interface {
+	DrawCompleteBoard(board [8][8]byte, filename string, cellsize int)
+}
+
+type RasterBoardRenderer struct {
+	icons map[byte]*image.Image
+}
+
+func NewRasterBoardRenderer() *RasterBoardRenderer {
+	p := new(RasterBoardRenderer)
+    p.icons = make(map[byte]*image.Image)
+    p.loadIcons()
+    return p
+}
+
+func (r RasterBoardRenderer) loadIcons() {
+	for _, s := range validPieces {
+		var iconFile = "icons/" + string(s) + "60.png"
+		r.icons[s] = r.loadIcon(iconFile)
+	}
+}
+
+func (r RasterBoardRenderer) loadIcon(inputFilename string) *image.Image {
 	infile, err := os.Open(inputFilename)
 	if err != nil {
 		// replace this with real error handling
@@ -26,7 +48,7 @@ func loadIcon(inputFilename string) *image.Image {
 	return &src
 }
 
-func Rect(x1 int, y1, x2, y2 int, col color.RGBA, img *image.RGBA) {
+func (r RasterBoardRenderer) rect(x1 int, y1, x2, y2 int, col color.RGBA, img *image.RGBA) {
 	for x := x1; x <= x2; x++ {
 		for y := y1; y <= y2; y++ {
 			img.Set(x, y, col)
@@ -34,7 +56,9 @@ func Rect(x1 int, y1, x2, y2 int, col color.RGBA, img *image.RGBA) {
 	}
 }
 
-func DrawBackground(img *image.RGBA, cellsize int) {
+func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, 8*cellsize, 8*cellsize))
+
 	// Lichess colors : 8ca2ad and dee3e6
 	var whiteColor = color.RGBA{222, 227, 230, 255}
 	var blackColor = color.RGBA{140, 162, 173, 255}
@@ -43,48 +67,33 @@ func DrawBackground(img *image.RGBA, cellsize int) {
 
 	for x := 0; x < 8; x++ {
 		for y := 0; y < 8; y++ {
-			color := blackColor
+			// drawCell
+			cellColor := blackColor
 			if (x+y)%2 == 0 {
-				color = whiteColor
+				cellColor = whiteColor
 			}
+			r.rect(x*s, y*s, (x+1)*s, (y+1)*s, cellColor, img)
 
-			Rect(x*s, y*s, (x+1)*s, (y+1)*s, color, img)
-		}
-	}
-}
-
-func DrawBoard(board [8][8]byte, img *image.RGBA, cellsize int) {
-
-	for x := 0; x < 8; x++ {
-		for y := 0; y < 8; y++ {
+			// drawPiece
 			var piece = board[y][x]
 
-			var _, isLoaded = icons[piece]
+			var _, isLoaded = r.icons[piece]
 			if isChessPieceOrPawn(piece) && isLoaded {
 				var coords = image.Point{-x * cellsize, -y * cellsize}
-				draw.Draw(img, img.Bounds(), *(icons[piece]), coords, draw.Over)
+				draw.Draw(img, img.Bounds(), *(r.icons[piece]), coords, draw.Over)
 			}
 		}
 	}
+
+	return img
 }
 
-func loadIcons() {
-	for _, s := range validPieces {
-		var iconFile = "icons/" + string(s) + "60.png"
-		icons[s] = loadIcon(iconFile)
-	}
-}
-
-func drawCompleteBoard(board [8][8]byte, filename string, cellsize int) {
-	loadIcons()
-
-	img := image.NewRGBA(image.Rect(0, 0, 8*cellsize, 8*cellsize))
+func (r RasterBoardRenderer) DrawCompleteBoard(board [8][8]byte, filename string, cellsize int) {
+	img := r.drawPieces(board, cellsize)
 
 	f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
 	defer f.Close()
 
-	DrawBackground(img, cellsize)
-	DrawBoard(board, img, cellsize)
 
 	png.Encode(f, img)
 }

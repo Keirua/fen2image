@@ -24,3 +24,8 @@ renderer
  -> PNG Renderer
  -> SVG Renderer ?
  -> resize, invert board (view from blacks), draw row/column names
+ -> better error handling
+Fen validation
+ -> Making a perfect FEN validation is a lot more work than I thought :
+http://chess.stackexchange.com/questions/1482/how-to-know-when-a-fen-position-is-legal
+It's maybe not encessary though (FEN may represent illegal positions)
