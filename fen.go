@@ -27,8 +27,9 @@ func contains(s []byte, e byte) bool {
 }
 
 func isValidFen(fen string) bool {
-	var linePattern = "[1-9rnbqkpRNBQKP]+"
-	var fenRegex = fmt.Sprintf("%s/%s/%s/%s/%s/%s/%s/%s w|b (K?Q?k?q?)|- ([a-h][1-8])|- \\d+ \\d+", linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern)
+	// var linePattern = "[1-9rnbqkpRNBQKP]+"
+	//var fenRegex = fmt.Sprintf("%s/%s/%s/%s/%s/%s/%s/%s w|b (K?Q?k?q?)|- ([a-h][1-8])|- \\d+ \\d+", linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern, linePattern)
+	var fenRegex = "\\s*([rnbqkpRNBQKP1-8]+\\/){7}([rnbqkpRNBQKP1-8]+)\\s[bw-]\\s(([a-hkqA-HKQ]{1,4})|(-))\\s(([a-h][36])|(-))\\s\\d+\\s\\d+\\s*"
 	var isValid, _ = regexp.MatchString(fenRegex, fen)
 	return isValid
 }

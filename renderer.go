@@ -5,7 +5,9 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"image/jpeg"
 	"os"
+	"strings"
 )
 
 type BoardRenderer interface {
@@ -94,8 +96,16 @@ func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int, reverseB
 func (r RasterBoardRenderer) DrawCompleteBoard(board [8][8]byte, filename string, cellsize int, reverse bool) {
 	img := r.drawPieces(board, cellsize, reverse)
 
-	f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
-	defer f.Close()
-
-	png.Encode(f, img)
+	if strings.Contains(strings.ToLower(filename), ".png") {
+		f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
+		defer f.Close()
+		png.Encode(f, img)
+	} else if strings.Contains(strings.ToLower(filename), ".jpg") {
+		f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
+		defer f.Close()
+		jpegOptions := jpeg.Options{100}
+		jpeg.Encode(f, img, &jpegOptions)
+	} else {
+		panic("invalid output file format")
+	}
 }
