@@ -8,6 +8,9 @@ import (
 	"image/jpeg"
 	"os"
 	"strings"
+
+	"github.com/golang/freetype"
+	"io/ioutil"
 )
 
 type BoardRenderer interface {
@@ -16,12 +19,15 @@ type BoardRenderer interface {
 
 type RasterBoardRenderer struct {
 	icons map[byte]*image.Image
+	/*context *freetype.Context
+	fontSize float64*/
 }
 
 func NewRasterBoardRenderer() *RasterBoardRenderer {
 	p := new(RasterBoardRenderer)
     p.icons = make(map[byte]*image.Image)
     p.loadIcons()
+    // p.loadFont()
     return p
 }
 
@@ -58,9 +64,7 @@ func (r RasterBoardRenderer) rect(x1 int, y1, x2, y2 int, col color.RGBA, img *i
 	}
 }
 
-func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int, reverseBoard bool) *image.RGBA {
-	img := image.NewRGBA(image.Rect(0, 0, 8*cellsize, 8*cellsize))
-
+func (r RasterBoardRenderer) drawPieces(img* image.RGBA, board [8][8]byte, cellsize int, reverseBoard bool) *image.RGBA {
 	// Lichess colors : 8ca2ad and dee3e6
 	var whiteColor = color.RGBA{222, 227, 230, 255}
 	var blackColor = color.RGBA{140, 162, 173, 255}
@@ -93,8 +97,69 @@ func (r RasterBoardRenderer) drawPieces(board [8][8]byte, cellsize int, reverseB
 	return img
 }
 
-func (r RasterBoardRenderer) DrawCompleteBoard(board [8][8]byte, filename string, cellsize int, reverse bool) {
-	img := r.drawPieces(board, cellsize, reverse)
+func (r RasterBoardRenderer) drawLetter(context freetype.Context, x int, s string) {
+	fontSize := 30.0
+	cellsize := 60
+	y := 8
+	xPos := cellsize/2-int(context.PointToFixed(fontSize)>>6)/4 + x*cellsize
+	yPos := int(context.PointToFixed(fontSize)>>6)+ int((float64(y))*float64(cellsize))
+
+	pt := freetype.Pt(xPos, yPos)
+	context.DrawString(s, pt)
+}
+
+func (r RasterBoardRenderer) drawNumber(context freetype.Context, y int, s string) {
+	fontSize := 30.0
+	cellsize := 60
+	x := 8
+
+	xPos := int(context.PointToFixed(fontSize)>>6)/4 + x*cellsize
+	yPos := int(context.PointToFixed(fontSize)>>6)/2+ int((float64(y)+0.5)*float64(cellsize))
+
+	pt := freetype.Pt(xPos, yPos)
+	context.DrawString(s, pt)
+}
+
+func (r RasterBoardRenderer) drawText(img* image.RGBA, cellsize int) *image.RGBA {
+	fontBytes, _ := ioutil.ReadFile("./font/luxisr.ttf")
+	/*if err != nil {
+		//log.Println(err)
+		return img
+	}*/
+	f, _ := freetype.ParseFont(fontBytes)
+	/*if err != nil {
+		//log.Println(err)
+		return img
+	}*/
+
+	fontSize := 30.0
+	context := freetype.NewContext()
+	context.SetDPI(72)
+	context.SetFont(f)
+	context.SetFontSize(fontSize)
+	context.SetSrc(image.Black)
+
+	context.SetClip(img.Bounds())
+	context.SetDst(img)
+	
+	// r.drawLetter(*context, 1,1,"a");
+	for i := 0; i < 8; i++ {
+		r.drawLetter(*context, i, string(rune('a'+i)));
+		r.drawNumber(*context, i, string(rune('0'+i)));
+	}
+
+	return img
+}
+
+func (r RasterBoardRenderer) DrawCompleteBoard(board [8][8]byte, filename string, cellsize int, reverse bool, drawCellNames bool) {
+	imageSize := 8*cellsize;
+	if drawCellNames {
+		imageSize = int(8.5*float64(cellsize));
+	}
+
+	img := image.NewRGBA(image.Rect(0, 0, imageSize, imageSize))
+	img = r.drawPieces(img, board, cellsize, reverse)
+	img = r.drawText(img, cellsize)
 
 	if strings.Contains(strings.ToLower(filename), ".png") {
 		f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
