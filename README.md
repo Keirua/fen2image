@@ -18,6 +18,12 @@ Other command line options are detailled in the help:
 
 	$ ./fen2image --help
 
+## Features
+
+ - Generate image file out of a FEN string
+ - Support for png and jpg output file formats
+ - handle reversed board (view from blacks point of view)
+
 ## Todo
 
 A lot of things remain to do.
@@ -25,16 +31,16 @@ A lot of things remain to do.
 board
 
  - write tests
- - convert board fromFEN
- - validate FEN input expression with regex
+ x convert board fromFEN
+ x validate FEN input expression with regex
 
 options
  - handle different cell size (-> resize icons)
  - cell colors
- - revert board
- - draw column names
+ X revert board
+ X draw column names
 renderer
- - PNG/JPG Renderer
+ X PNG/JPG Renderer
  - SVG Renderer ?
  - better error handling
 
